@@ -15,13 +15,20 @@ const EmployeePagination = () => {
     fetch(
       "https://geektrust.s3-ap-southeast-1.amazonaws.com/adminui-problem/members.json"
     )
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        return response.json();
+      })
       .then((data) => {
         setEmployees(data);
         setError(null);
       })
       .catch((error) => {
-        setError("Failed to fetch data");
+        setError(error.message);
+        // Display an alert message
+        alert("Failed to fetch data. Please try again.");
       });
   };
 
