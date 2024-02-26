@@ -1,25 +1,98 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import "./App.css"; // Import the CSS file
 
-function App() {
+const EmployeePagination = () => {
+  const [employees, setEmployees] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const perPage = 10;
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchEmployeeData();
+  }, []);
+
+  const fetchEmployeeData = () => {
+    fetch(
+      "https://geektrust.s3-ap-southeast-1.amazonaws.com/adminui-problem/members.json"
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        setEmployees(data);
+        setError(null);
+      })
+      .catch((error) => {
+        setError("Failed to fetch data");
+      });
+  };
+
+  const handleNextPage = () => {
+    const totalPages = Math.ceil(employees.length / perPage);
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const startIndex = (currentPage - 1) * perPage;
+  const endIndex = Math.min(startIndex + perPage, employees.length);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <div>
+      <h1>Employee Data Table</h1>
+      {error && <p>{error}</p>}
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {employees.slice(startIndex, endIndex).map((employee) => (
+            <tr key={employee.id}>
+              <td>{employee.id}</td>
+              <td>{employee.name}</td>
+              <td>{employee.email}</td>
+              <td>{employee.role}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="button-container">
+        <button
+          onClick={handlePreviousPage}
+          disabled={currentPage === 1}
+          type="button"
+          class="btn btn-outline-primary"
         >
-          Learn React
-        </a>
-      </header>
+          Previous
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          disabled={currentPage} // Disable if on the first page
+        >
+          {" "}
+          {currentPage}
+        </button>
+        <button
+          onClick={handleNextPage}
+          disabled={currentPage * perPage >= employees.length}
+          type="button"
+          class="btn btn-outline-primary"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
-}
+};
 
-export default App;
+export default EmployeePagination;
